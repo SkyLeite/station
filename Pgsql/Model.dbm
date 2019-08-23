@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-beta" last-position="299,0" last-zoom="1" max-obj-count="7"
+<dbmodel pgmodeler-ver="0.9.2-beta" last-position="388,138" last-zoom="1" max-obj-count="7"
 	 default-schema="public" default-owner="postgres">
 <database name="station" is-template="false" allow-conns="true">
 </database>
@@ -113,7 +113,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="artists" layer="0" collapse-mode="2" max-obj-count="6">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1280" y="740"/>
+	<position x="1280" y="760"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -175,6 +175,14 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<constraint name="libraries_pk" type="pk-constr" table="public.libraries">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="owner_id" index="2"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="users_fk" index="1"/>
+	</customidxs>
 </table>
 
 <relationship name="users_has_many_libraries" type="rel1n" layer="0"
@@ -224,7 +232,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.albums"
 	 src-required="false" dst-required="false"/>
 
-<function name="CreateUser"
+<function name="createuser"
 		window-func="false"
 		returns-setof="false"
 		behavior-type="CALLED ON NULL INPUT"
@@ -247,9 +255,181 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<parameter name="display_name">
 		<type name="varchar" length="0"/>
 	</parameter>
-	<definition><![CDATA[BEGIN
+	<definition><![CDATA[DECLARE
+  _rec public.users;
+BEGIN
   INSERT INTO users (email, password, display_name)
-  VALUES (email, password, display_name);
+  VALUES (email, password, display_name)
+  RETURNING users.id, users.email, users.password, users.display_name
+  INTO _rec;
+  RETURN _rec;
+END;]]></definition>
+</function>
+
+<function name="getuser"
+		window-func="false"
+		returns-setof="true"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<parameter name="id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="display_name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	</return-type>
+	<parameter name="user_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<definition><![CDATA[BEGIN
+  RETURN QUERY
+  SELECT users.id, users.display_name
+  FROM users
+  WHERE users.id = user_id;
+END;]]></definition>
+</function>
+
+<function name="getusers"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="20">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<parameter name="id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="display_name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	</return-type>
+	<definition><![CDATA[BEGIN
+  RETURN QUERY
+  SELECT users.id, users.display_name
+  FROM users
+  LIMIT 20;
+END;]]></definition>
+</function>
+
+<function name="createlibrary"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.libraries" length="0"/>
+	</return-type>
+	<parameter name="name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="owner_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<definition><![CDATA[DECLARE
+  _rec record;
+BEGIN  
+  INSERT INTO libraries (name, owner_id)
+  VALUES (name, owner_id)
+  RETURNING libraries.id, libraries.name, libraries.owner_id
+  INTO _rec;
+  RETURN _rec;
+END;]]></definition>
+</function>
+
+<function name="getlibrary"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<parameter name="id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="owner_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="owner_display_name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	</return-type>
+	<parameter name="id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<definition><![CDATA[BEGIN
+  RETURN QUERY
+  SELECT 
+    libraries.id,
+    libraries.name,
+    libraries.owner_id,
+    users.display_name as owner_display_name
+  FROM libraries
+  LEFT JOIN users ON users.id = libraries.owner_id
+  WHERE libraries.id = id;
+END;]]></definition>
+</function>
+
+<function name="getlibraries"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="20">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<parameter name="id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="owner_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="owner_display_name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	</return-type>
+	<definition><![CDATA[BEGIN
+  RETURN QUERY
+  SELECT 
+    libraries.id,
+    libraries.name,
+    libraries.owner_id,
+    users.display_name as owner_display_name
+  FROM libraries
+  LEFT JOIN users ON users.id = libraries.owner_id
+  LIMIT 20;
 END;]]></definition>
 </function>
 
