@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.9.2-beta" last-position="299,0" last-zoom="1" max-obj-count="7"
+	 default-schema="public" default-owner="postgres">
+<database name="station" is-template="false" allow-conns="true">
+</database>
+
+<schema name="public" layer="0" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<table name="users" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="460" y="140"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="email" not-null="true">
+		<type name="varchar" length="32"/>
+	</column>
+	<column name="password" not-null="true">
+		<type name="varchar" length="32"/>
+	</column>
+	<column name="display_name">
+		<type name="varchar" length="16"/>
+	</column>
+	<constraint name="UQ_users" type="uq-constr" table="public.users">
+		<columns names="email,display_name" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="users_pk" type="pk-constr" table="public.users">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="songs" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1020" y="420"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="duration" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="genres">
+		<type name="varchar" length="0" dimension="1"/>
+	</column>
+	<column name="mbid">
+		<type name="char" length="36"/>
+	</column>
+	<constraint name="songs_pk" type="pk-constr" table="public.songs">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_albums" index="5"/>
+		<object name="id_libraries" index="6"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="albums_fk" index="1"/>
+		<object name="libraries_fk" index="2"/>
+	</customidxs>
+</table>
+
+<usertype name="album_types" configuration="enumeration">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<enumeration values="album,single,mixtape,unreleased,bootleg"/>
+</usertype>
+
+<table name="albums" layer="0" collapse-mode="2" max-obj-count="8">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="820" y="740"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="cover_art">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="type" not-null="true" default-value="'album'">
+		<type name="public.album_types" length="0"/>
+	</column>
+	<column name="tags">
+		<type name="varchar" length="0" dimension="1"/>
+	</column>
+	<column name="mbid">
+		<type name="char" length="36"/>
+	</column>
+	<constraint name="albums_pk" type="pk-constr" table="public.albums">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_artists" index="6"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="artists_fk" index="1"/>
+	</customidxs>
+</table>
+
+<table name="artists" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1280" y="740"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="tags">
+		<type name="varchar" length="0" dimension="1"/>
+	</column>
+	<column name="mbid">
+		<type name="char" length="36"/>
+	</column>
+	<column name="cover_art">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="artists_pk" type="pk-constr" table="public.artists">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_artists_has_many_songs" type="relnn" layer="0"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#2ec6ac"
+	 src-table="public.artists"
+	 dst-table="public.songs"
+	 src-required="false" dst-required="false"
+	 table-name="many_artists_has_many_songs">
+	<label ref-type="name-label">
+		<position x="21.697" y="-27.0067"/>
+	</label>
+</relationship>
+
+<relationship name="albums_has_many_songs" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#5a1d85"
+	 src-table="public.albums"
+	 dst-table="public.songs"
+	 src-required="true" dst-required="false">
+	<label ref-type="name-label">
+		<position x="1.98702" y="-22.0133"/>
+	</label>
+</relationship>
+
+<table name="libraries" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="460" y="440"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="libraries_pk" type="pk-constr" table="public.libraries">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="users_has_many_libraries" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#6ee9b0"
+	 src-table="public.users"
+	 dst-table="public.libraries"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="-74.1627" y="2.99329"/>
+	</label>
+</relationship>
+
+<relationship name="libraries_has_many_songs" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#16f389"
+	 src-table="public.libraries"
+	 dst-table="public.songs"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="user_library_follows" type="relnn" layer="0"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#486624"
+	 src-table="public.users"
+	 dst-table="public.libraries"
+	 src-required="false" dst-required="false"
+	 table-name="user_library_follows"
+	del-action="CASCADE">
+	<label ref-type="name-label">
+		<position x="41.5462" y="-17.0067"/>
+	</label>
+</relationship>
+
+<relationship name="artists_has_many_albums" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#e03bf2"
+	 src-table="public.artists"
+	 dst-table="public.albums"
+	 src-required="false" dst-required="false"/>
+
+<function name="CreateUser"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.users" length="0"/>
+	</return-type>
+	<parameter name="email">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="password">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="display_name">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<definition><![CDATA[BEGIN
+  INSERT INTO users (email, password, display_name)
+  VALUES (email, password, display_name);
+END;]]></definition>
+</function>
+
+</dbmodel>
