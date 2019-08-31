@@ -18,7 +18,7 @@ namespace Station.Controllers
             this._database = context;
         }
 
-        // GET api/values
+        // GET api/songs
         [HttpGet]
         public async Task<ActionResult<Song[]>> Get()
         {
@@ -26,26 +26,26 @@ namespace Station.Controllers
             return songs;
         }
 
-        // GET api/values/5
+        // GET api/songs/5
         [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
             return "value";
         }
 
-        // POST api/values
+        // POST api/songs
         [HttpPost]
         public void Post([FromBody] string value)
         {
         }
 
-        // PUT api/values/5
+        // PUT api/songs/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
         }
 
-        // DELETE api/values/5
+        // DELETE api/songs/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
