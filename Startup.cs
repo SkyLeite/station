@@ -26,6 +26,7 @@ namespace Station
         {
             services.Configure<ApplicationSettings>(Configuration.GetSection("ApplicationSettings"));
             services.AddSingleton<Database>();
+            services.AddSingleton<SongWorker>();
             services.AddTransient<IBasePlugin, SoundcloudPlugin>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
