@@ -6,6 +6,6 @@ namespace Station {
         string Name { get; }
         IEnumerable<PluginField> Fields { get; }
 
-        Task<PluginResponse> ImportFileAsync(IEnumerable<PluginField> fields);
+        Task<PluginResponse> ImportFileAsync(Dictionary<string, dynamic> fields);
     }
 }

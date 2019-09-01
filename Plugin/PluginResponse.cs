@@ -1,9 +1,9 @@
 namespace Station {
     public class PluginResponse {
-        byte[] Data;
-        string Title;
-        string Artist;
-        string Album;
-        int Duration;
+        public byte[] Data;
+        public string Title;
+        public string Artist;
+        public string Album;
+        public int Duration;
     }
 }
