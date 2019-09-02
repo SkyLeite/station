@@ -5,5 +5,6 @@ namespace Station {
         public string Artist;
         public string Album;
         public int Duration;
+        public string MBID;
     }
 }
