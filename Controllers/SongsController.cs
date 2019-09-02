@@ -41,7 +41,7 @@ namespace Station.Controllers
         // POST api/songs
         [AllowAnonymous]
         [HttpPost]
-        public async Task<string> Post([FromBody] PostSongBody body)
+        public async Task<Song> Post([FromBody] PostSongBody body)
         {
             var plugin = _plugins.First(i => i.Name == body.Plugin);
             var pluginResponse = await plugin.ImportFileAsync(body.Fields);
