@@ -103,6 +103,70 @@ namespace Station
                 return libraries.ToArray();
             }
         }
+
+        public async Task<Upload> CreateUploadAsync(string filename, string extension, Models.Type type, int size) {
+            using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
+                await connection.OpenAsync();
+
+                var upload = (await connection.QueryAsync<Upload>("SELECT * FROM createupload(@filename, @extension, @type, @size)", new {
+                            filename = filename,
+                            extension = extension,
+                            type = type,
+                            size = size,
+                        })).First();
+
+                return upload;
+            }
+        }
+
+        public async Task<Song> CreateSongAsync(string title, int duration, IEnumerable<string> genres, int album_id, IEnumerable<int> artists, int library_id, string mbid = null) {
+            using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
+                await connection.OpenAsync();
+
+                var song = (await connection.QueryAsync<Song>("createsong", new {
+                            title = title,
+                            duration = duration,
+                            genres = genres,
+                            album_id = album_id,
+                            artists = artists,
+                            library_id = library_id,
+                            mbid = mbid,
+                        }, commandType: CommandType.StoredProcedure)).First();
+
+                return song;
+            }
+        }
+
+        public async Task<Artist> CreateArtistAsync(string title, IEnumerable<string> tags = null, string mbid = null) {
+            using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+                parameters.Add("title", title);
+                parameters.Add("tags", tags);
+                parameters.Add("mbid", mbid);
+
+                var artist = (await connection.QueryAsync<Artist>("createartist", parameters, commandType: CommandType.StoredProcedure)).First();
+
+                return artist;
+            }
+        }
+
+        public async Task<Album> CreateAlbumAsync(string title, int id_artists, string type, IEnumerable<string> tags = null, string mbid = null) {
+            using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
+                await connection.OpenAsync();
+
+                var album = (await connection.QueryAsync<Album>("createalbum", new {
+                            title = title,
+                            id_artists = id_artists,
+                            type = type,
+                            tags = tags,
+                            mbid = mbid,
+                        }, commandType: CommandType.StoredProcedure)).First();
+
+                return album;
+            }
+        }
     }
 
     public class DatabaseOptions
