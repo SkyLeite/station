@@ -9,5 +9,6 @@ namespace Station.Models {
         public string MBID { get; set; }
         public List<Album> Albums { get; set; }
         public List<Artist> Artist { get; set; }
+        public List<Upload> Uploads { get; set; }
     }
 }
