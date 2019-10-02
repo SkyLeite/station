@@ -1,0 +1,9 @@
+diff a/Plugin/Field.cs b/Plugin/Field.cs	(rejected hunks)
+@@ -6,6 +6,7 @@ namespace Station {
+         public FieldType Type;
+         public string Identifier;
+         public Boolean IsRequired;
++        public dynamic Data;
+ 
+         public enum FieldType {
+             TextInput,

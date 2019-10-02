@@ -42,6 +42,18 @@ namespace Station
             }
         }
 
+        public async Task<User> GetUserByEmail(string email) {
+            using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
+                await connection.OpenAsync();
+
+                var user = await connection.QueryAsync<User>("getuserbyemail", new {
+                        email = email
+                    }, commandType: CommandType.StoredProcedure);
+
+                return user.First();
+            }
+        }
+
         public async Task<User> CreateUserAsync(string email, string password, string displayName) {
             using (var connection = new NpgsqlConnection(_settings.Value.ConnectionString)) {
                 await connection.OpenAsync();

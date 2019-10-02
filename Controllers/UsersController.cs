@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Station.Models;
+using Station.Services;
 
 namespace Station.Controllers
 {
@@ -11,12 +14,15 @@ namespace Station.Controllers
     public class UsersController : ControllerBase
     {
         private readonly Database _database;
+        private readonly IUserService _userService;
 
-        public UsersController(Database context) {
+        public UsersController(Database context, IUserService userService) {
             this._database = context;
+            this._userService = userService;
         }
 
         // GET api/users
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<User[]>> Get()
         {
@@ -28,6 +34,7 @@ namespace Station.Controllers
         }
 
         // GET api/users/5
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> Get(int id)
         {
@@ -38,11 +45,25 @@ namespace Station.Controllers
             });
         }
 
+        // POST api/users/authenticate
+        [AllowAnonymous]
+        [HttpPost("authenticate")]
+        public async Task<ActionResult<User>> Authenticate([FromBody] ILoginParameters loginParams) {
+            Console.WriteLine(123123);
+            var user = await _userService.Authenticate(loginParams.email, loginParams.password);
+
+            if (user == null)
+                return Unauthorized(new { message = "Username or password is incorrect" });
+
+            return Ok(user);
+        }
+
         // POST api/users
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<User>> Post([FromBody] ICreateUserParameters parameters)
         {
-            var user = await _database.CreateUserAsync(parameters.email, parameters.password, parameters.displayName);
+            var user = await _userService.CreateUser(parameters.email, parameters.password, parameters.displayName);
             return new JsonResult(user, new JsonSerializerSettings()
             {
                 NullValueHandling = NullValueHandling.Ignore
@@ -50,12 +71,14 @@ namespace Station.Controllers
         }
 
         // PUT api/users/5
+        [Authorize]
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
         }
 
         // DELETE api/users/5
+        [Authorize]
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
@@ -66,5 +89,10 @@ namespace Station.Controllers
         public string email;
         public string password;
         public string displayName;
+    }
+
+    public class ILoginParameters {
+        public string email;
+        public string password;
     }
 }
