@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Station.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Station.Controllers
 {

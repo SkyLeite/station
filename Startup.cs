@@ -28,11 +28,11 @@ namespace Station
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ApplicationSettings>(Configuration.GetSection("ApplicationSettings"));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
+            services.AddMvc();
             services.AddSingleton<Database>();
             services.AddScoped<IUserService, UserService>();
         }
@@ -40,13 +40,17 @@ namespace Station
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseRouting();
+           
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                    endpoints.MapControllers();
+                });
         }
     }
 }
