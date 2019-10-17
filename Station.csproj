@@ -9,6 +9,7 @@
     <PackageReference Include="Dapper" Version="1.60.6" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="MusicBrainz.Core" Version="1.0.1" />
     <PackageReference Include="Npgsql" Version="4.0.9" />
   </ItemGroup>
 

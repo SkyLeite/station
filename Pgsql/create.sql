@@ -124,7 +124,7 @@ ON DELETE RESTRICT ON UPDATE CASCADE;
 CREATE TABLE public.libraries (
 	id serial NOT NULL,
 	name varchar NOT NULL,
-	owner_id integer,
+	id_users integer,
 	CONSTRAINT libraries_pk PRIMARY KEY (id)
 
 );
@@ -134,7 +134,7 @@ ALTER TABLE public.libraries OWNER TO postgres;
 
 -- object: users_fk | type: CONSTRAINT --
 -- ALTER TABLE public.libraries DROP CONSTRAINT IF EXISTS users_fk CASCADE;
-ALTER TABLE public.libraries ADD CONSTRAINT users_fk FOREIGN KEY (owner_id)
+ALTER TABLE public.libraries ADD CONSTRAINT users_fk FOREIGN KEY (id_users)
 REFERENCES public.users (id) MATCH FULL
 ON DELETE SET NULL ON UPDATE CASCADE;
 -- ddl-end --
@@ -318,6 +318,110 @@ END;
 $$;
 -- ddl-end --
 ALTER FUNCTION public.getlibraries() OWNER TO postgres;
+-- ddl-end --
+
+-- object: public.uploads | type: TABLE --
+-- DROP TABLE IF EXISTS public.uploads CASCADE;
+CREATE TABLE public.uploads (
+	id serial NOT NULL,
+	filename varchar,
+	extension varchar,
+	type smallint,
+	size integer,
+	id_songs integer,
+	CONSTRAINT uploads_pk PRIMARY KEY (id)
+
+);
+-- ddl-end --
+ALTER TABLE public.uploads OWNER TO postgres;
+-- ddl-end --
+
+-- object: songs_fk | type: CONSTRAINT --
+-- ALTER TABLE public.uploads DROP CONSTRAINT IF EXISTS songs_fk CASCADE;
+ALTER TABLE public.uploads ADD CONSTRAINT songs_fk FOREIGN KEY (id_songs)
+REFERENCES public.songs (id) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: public.createupload | type: FUNCTION --
+-- DROP FUNCTION IF EXISTS public.createupload(varchar,varchar,integer,integer) CASCADE;
+CREATE FUNCTION public.createupload ( filename varchar,  extension varchar,  type integer,  size integer)
+	RETURNS public.uploads
+	LANGUAGE plpgsql
+	VOLATILE 
+	RETURNS NULL ON NULL INPUT
+	SECURITY INVOKER
+	COST 1
+	AS $$
+DECLARE
+  _rec public.uploads;
+BEGIN
+  INSERT INTO uploads (filename, extension, type, size)
+  VALUES (filename, extension, type, size)
+  RETURNING public.uploads.*
+  INTO _rec;
+  RETURN _rec;
+END;
+
+$$;
+-- ddl-end --
+ALTER FUNCTION public.createupload(varchar,varchar,integer,integer) OWNER TO postgres;
+-- ddl-end --
+
+-- object: public.createsong | type: FUNCTION --
+-- DROP FUNCTION IF EXISTS public.createsong(varchar,integer,varchar[],integer,integer[],char(36)) CASCADE;
+CREATE FUNCTION public.createsong ( title varchar,  duration integer,  genres varchar[],  album_id integer,  artists integer[],  mbid char(36) DEFAULT NULL)
+	RETURNS public.songs
+	LANGUAGE plpgsql
+	VOLATILE 
+	CALLED ON NULL INPUT
+	SECURITY INVOKER
+	COST 1
+	AS $$
+DECLARE
+  _rec public.songs;
+BEGIN
+  INSERT INTO songs (title, duration, genres, mbid, album_id)
+  VALUES (title, duration, genres, mbid, album_id)
+  RETURNING public.songs.*
+  INTO _rec;
+
+  FOREACH artist IN ARRAY artists
+  LOOP
+    INSERT INTO many_artists_has_many_songs (id_artists, id_songs)
+    VALUES (artist, _rec.id);
+  END LOOP;
+  RETURN _rec;
+END;
+
+$$;
+-- ddl-end --
+ALTER FUNCTION public.createsong(varchar,integer,varchar[],integer,integer[],char(36)) OWNER TO postgres;
+-- ddl-end --
+
+-- object: public.createartist | type: FUNCTION --
+-- DROP FUNCTION IF EXISTS public.createartist(varchar,varchar[],char(36),varchar) CASCADE;
+CREATE FUNCTION public.createartist ( title varchar,  tags varchar[],  mbid char(36) DEFAULT NULL,  cover_art varchar DEFAULT NULL)
+	RETURNS public.artists
+	LANGUAGE plpgsql
+	VOLATILE 
+	CALLED ON NULL INPUT
+	SECURITY INVOKER
+	COST 1
+	AS $$
+DECLARE
+  _rec public.artists;
+BEGIN
+  INSERT INTO artists (title, tags, mbid, cover_art)
+  VALUES (title, tags, mbid, cover_art)
+  RETURNING public.artists.*
+  INTO _rec;
+  RETURN _rec;
+END;
+
+$$;
+-- ddl-end --
+ALTER FUNCTION public.createartist(varchar,varchar[],char(36),varchar) OWNER TO postgres;
 -- ddl-end --
 
 

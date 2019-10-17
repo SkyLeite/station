@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-beta" last-position="388,138" last-zoom="1" max-obj-count="7"
+<dbmodel pgmodeler-ver="0.9.2-beta" last-position="0,464" last-zoom="1" max-obj-count="12"
 	 default-schema="public" default-owner="postgres">
 <database name="station" is-template="false" allow-conns="true">
 </database>
@@ -89,7 +89,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="varchar" length="0"/>
 	</column>
 	<column name="type" not-null="true" default-value="'album'">
-		<type name="public.album_types" length="0"/>
+		<type name="varchar" length="0"/>
 	</column>
 	<column name="tags">
 		<type name="varchar" length="0" dimension="1"/>
@@ -145,7 +145,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 src-required="false" dst-required="false"
 	 table-name="many_artists_has_many_songs">
 	<label ref-type="name-label">
-		<position x="21.697" y="-27.0067"/>
+		<position x="18.2876" y="-30.1857"/>
 	</label>
 </relationship>
 
@@ -177,7 +177,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="owner_id" index="2"/>
+		<object name="id_users" index="2"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
@@ -244,25 +244,31 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<role name="postgres"/>
 	<language name="plpgsql" sql-disabled="true"/>
 	<return-type>
-	<type name="public.users" length="0"/>
-	</return-type>
-	<parameter name="email">
-		<type name="varchar" length="0"/>
+	<parameter name="id">
+		<type name="integer" length="0"/>
 	</parameter>
-	<parameter name="password">
-		<type name="varchar" length="0"/>
+	<parameter name="email">
+		<type name="varchar" length="32"/>
 	</parameter>
 	<parameter name="display_name">
+		<type name="varchar" length="16"/>
+	</parameter>
+	</return-type>
+	<parameter name="_email">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="_password">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="_display_name">
 		<type name="varchar" length="0"/>
 	</parameter>
 	<definition><![CDATA[DECLARE
-  _rec public.users;
+  _rec record;
 BEGIN
-  INSERT INTO users (email, password, display_name)
-  VALUES (email, password, display_name)
-  RETURNING users.id, users.email, users.password, users.display_name
-  INTO _rec;
-  RETURN _rec;
+  RETURN QUERY INSERT INTO users (email, password, display_name)
+  VALUES (_email, _password, _display_name)
+  RETURNING users.id, users.email, users.display_name;
 END;]]></definition>
 </function>
 
@@ -330,7 +336,7 @@ END;]]></definition>
 		function-type="VOLATILE"
 		security-type="SECURITY INVOKER"
 		execution-cost="1"
-		row-amount="0">
+		row-amount="1">
 	<schema name="public"/>
 	<role name="postgres"/>
 	<language name="plpgsql" sql-disabled="true"/>
@@ -346,9 +352,9 @@ END;]]></definition>
 	<definition><![CDATA[DECLARE
   _rec record;
 BEGIN  
-  INSERT INTO libraries (name, owner_id)
+  INSERT INTO libraries (name, id_users)
   VALUES (name, owner_id)
-  RETURNING libraries.id, libraries.name, libraries.owner_id
+  RETURNING public.libraries.*
   INTO _rec;
   RETURN _rec;
 END;]]></definition>
@@ -430,6 +436,209 @@ END;]]></definition>
   FROM libraries
   LEFT JOIN users ON users.id = libraries.owner_id
   LIMIT 20;
+END;]]></definition>
+</function>
+
+<table name="uploads" layer="0" collapse-mode="2" max-obj-count="7">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1380" y="240"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="filename">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="extension">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="type">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="size">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="uploads_pk" type="pk-constr" table="public.uploads">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="songs_has_many_uploads" type="rel1n" layer="0"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#567df3"
+	 src-table="public.songs"
+	 dst-table="public.uploads"
+	 src-required="false" dst-required="false"/>
+
+<function name="createupload"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="RETURNS NULL ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.uploads" length="0"/>
+	</return-type>
+	<parameter name="filename">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="extension">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="type">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="size">
+		<type name="integer" length="0"/>
+	</parameter>
+	<definition><![CDATA[DECLARE
+  _rec public.uploads;
+BEGIN
+  INSERT INTO uploads (filename, extension, type, size)
+  VALUES (filename, extension, type, size)
+  RETURNING public.uploads.*
+  INTO _rec;
+  RETURN _rec;
+END;
+]]></definition>
+</function>
+
+<function name="createsong"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.songs" length="0"/>
+	</return-type>
+	<parameter name="title">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="duration">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="genres">
+		<type name="varchar" length="0" dimension="1"/>
+	</parameter>
+	<parameter name="album_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="artists">
+		<type name="integer" length="0" dimension="1"/>
+	</parameter>
+	<parameter name="library_id">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="mbid" default-value="NULL">
+		<type name="char" length="36"/>
+	</parameter>
+	<definition><![CDATA[DECLARE
+  _artist integer;
+  _rec public.songs;
+BEGIN
+  INSERT INTO songs (title, duration, genres, mbid, id_albums, id_libraries)
+  VALUES (title, duration, genres, mbid, album_id, library_id)
+  RETURNING public.songs.*
+  INTO _rec;
+
+  FOREACH _artist IN ARRAY artists
+  LOOP
+    INSERT INTO many_artists_has_many_songs (id_artists, id_songs)
+    VALUES (_artist, _rec.id);
+  END LOOP;
+  RETURN _rec;
+END;
+]]></definition>
+</function>
+
+<function name="createartist"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.artists" length="0"/>
+	</return-type>
+	<parameter name="title">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="tags" default-value="NULL">
+		<type name="varchar" length="0" dimension="1"/>
+	</parameter>
+	<parameter name="mbid" default-value="NULL">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="cover_art" default-value="NULL">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<definition><![CDATA[DECLARE
+  _rec public.artists;
+BEGIN
+  INSERT INTO artists (title, tags, mbid, cover_art)
+  VALUES (title, tags, mbid, cover_art)
+  RETURNING public.artists.*
+  INTO _rec;
+  RETURN _rec;
+END;
+]]></definition>
+</function>
+
+<function name="createalbum"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="1"
+		row-amount="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="public.albums" length="0"/>
+	</return-type>
+	<parameter name="title">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="id_artists">
+		<type name="integer" length="0"/>
+	</parameter>
+	<parameter name="type" default-value="'album'">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<parameter name="tags" default-value="NULL">
+		<type name="varchar" length="0" dimension="1"/>
+	</parameter>
+	<parameter name="mbid" default-value="NULL">
+		<type name="varchar" length="0"/>
+	</parameter>
+	<definition><![CDATA[DECLARE
+  _rec public.albums;
+BEGIN
+  INSERT INTO albums (title, id_artists, type, tags, mbid)
+  VALUES (title, id_artists, type, tags, mbid)
+  RETURNING public.albums.*
+  INTO _rec;
+  RETURN _rec;
 END;]]></definition>
 </function>
 
